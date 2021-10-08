@@ -50,7 +50,6 @@ type AppService interface {
 type App struct {
 	Context     context.Context
 	Osys        osys.Osys
-	AppGit      git.Git
 	ConfigGit   git.Git
 	Flux        flux.Flux
 	Kube        kube.Kube
@@ -58,10 +57,9 @@ type App struct {
 	GitProvider gitproviders.GitProvider
 }
 
-func New(ctx context.Context, logger logger.Logger, appGit, configGit git.Git, gitProvider gitproviders.GitProvider, flux flux.Flux, kube kube.Kube, osys osys.Osys) AppService {
+func New(ctx context.Context, logger logger.Logger, configGit git.Git, gitProvider gitproviders.GitProvider, flux flux.Flux, kube kube.Kube, osys osys.Osys) AppService {
 	return &App{
 		Context:     ctx,
-		AppGit:      appGit,
 		ConfigGit:   configGit,
 		Flux:        flux,
 		Kube:        kube,
@@ -71,16 +69,13 @@ func New(ctx context.Context, logger logger.Logger, appGit, configGit git.Git, g
 	}
 }
 
-// Make sure App implements all the required methods.
-var _ AppService = &App{}
-
 func (a *App) getDeploymentType(ctx context.Context, name string, namespace string) (wego.DeploymentType, error) {
 	app, err := a.Kube.GetApplication(ctx, types.NamespacedName{Name: name, Namespace: namespace})
 	if err != nil {
 		return wego.DeploymentTypeKustomize, err
 	}
 
-	return wego.DeploymentType(app.Spec.DeploymentType), nil
+	return app.Spec.DeploymentType, nil
 }
 
 func (a *App) getSuspendedStatus(ctx context.Context, name, namespace string, deploymentType wego.DeploymentType) (bool, error) {

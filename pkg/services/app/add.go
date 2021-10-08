@@ -76,6 +76,10 @@ type AddParams struct {
 	HelmReleaseTargetNamespace string
 }
 
+func (a AddParams) IsHelmRepository() bool {
+	return a.Chart != ""
+}
+
 const (
 	DefaultPath           = "./"
 	DefaultBranch         = "main"

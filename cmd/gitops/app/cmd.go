@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/weaveworks/weave-gitops/cmd/internal"
+	"github.com/weaveworks/weave-gitops/pkg/osys"
+	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"os"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
@@ -73,7 +75,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	object := args[2]
 
 	log := logger.NewCLILogger(os.Stdout)
-	appFactory := apputils.NewAppFactory(log)
+	appFactory := apputils.NewAppFactory(osys.New(), &runner.CLIRunner{}, log)
 	client := internal.NewGitProviderClient(os.Stdout, os.LookupEnv, log)
 	appService, appError := appFactory.GetAppService(ctx, client, params.Name, params.Namespace)
 	if appError != nil {

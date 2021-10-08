@@ -54,12 +54,12 @@ func (f *defaultAppFactory) GetAppService(ctx context.Context, providerClient gi
 		return nil, fmt.Errorf("error initializing clients: %w", err)
 	}
 
-	appClient, configClient, gitProvider, err := f.getGitClientsForApp(ctx, providerClient, appName, namespace, false)
+	configClient, gitProvider, err := f.getGitClientsForApp(ctx, providerClient, appName, namespace, false)
 	if err != nil {
 		return nil, fmt.Errorf("error getting git clients: %w", err)
 	}
 
-	return app.New(ctx, f.log, appClient, configClient, gitProvider, f.fluxClient, kubeClient, f.osClient), nil
+	return app.New(ctx, f.log, configClient, gitProvider, f.fluxClient, kubeClient, f.osClient), nil
 }
 
 func (f *defaultAppFactory) GetAppServiceForAdd(ctx context.Context, providerClient gitproviders.Client, params AppServiceParams) (app.AppService, error) {
@@ -68,12 +68,12 @@ func (f *defaultAppFactory) GetAppServiceForAdd(ctx context.Context, providerCli
 		return nil, fmt.Errorf("error initializing clients: %w", err)
 	}
 
-	appClient, configClient, gitProvider, err := f.getGitClients(ctx, providerClient, params.URL, params.ConfigURL, params.Namespace, params.IsHelmRepository, params.DryRun)
+	configClient, gitProvider, err := f.getGitClients(ctx, providerClient, params.URL, params.ConfigURL, params.Namespace, params.IsHelmRepository, params.DryRun)
 	if err != nil {
 		return nil, fmt.Errorf("error getting git clients: %w", err)
 	}
 
-	return app.New(ctx, f.log, appClient, configClient, gitProvider, f.fluxClient, kubeClient, f.osClient), nil
+	return app.New(ctx, f.log, configClient, gitProvider, f.fluxClient, kubeClient, f.osClient), nil
 }
 
 func (f *defaultAppFactory) GetKubeService() (kube.Kube, error) {
@@ -94,15 +94,15 @@ func IsClusterReady(log logger.Logger) error {
 	return app.IsClusterReady(log, kube)
 }
 
-func (f *defaultAppFactory) getGitClientsForApp(ctx context.Context, gpClient gitproviders.Client, appName string, namespace string, dryRun bool) (git.Git, git.Git, gitproviders.GitProvider, error) {
+func (f *defaultAppFactory) getGitClientsForApp(ctx context.Context, gpClient gitproviders.Client, appName string, namespace string, dryRun bool) (git.Git, gitproviders.GitProvider, error) {
 	kube, _, err := kube.NewKubeHTTPClient()
 	if err != nil {
-		return nil, nil, nil, fmt.Errorf("error creating k8s http client: %w", err)
+		return nil, nil, fmt.Errorf("error creating k8s http client: %w", err)
 	}
 
 	app, err := kube.GetApplication(ctx, types.NamespacedName{Namespace: namespace, Name: appName})
 	if err != nil {
-		return nil, nil, nil, fmt.Errorf("could not retrieve application %q: %w", appName, err)
+		return nil, nil, fmt.Errorf("could not retrieve application %q: %w", appName, err)
 	}
 
 	isHelmRepository := app.Spec.SourceType == wego.SourceTypeHelm
@@ -110,7 +110,7 @@ func (f *defaultAppFactory) getGitClientsForApp(ctx context.Context, gpClient gi
 	return f.getGitClients(ctx, gpClient, app.Spec.URL, app.Spec.ConfigURL, namespace, isHelmRepository, dryRun)
 }
 
-func (f *defaultAppFactory) getGitClients(ctx context.Context, gpClient gitproviders.Client, url, configUrl, namespace string, isHelmRepository bool, dryRun bool) (git.Git, git.Git, gitproviders.GitProvider, error) {
+func (f *defaultAppFactory) getGitClients(ctx context.Context, gpClient gitproviders.Client, url, configUrl, namespace string, isHelmRepository bool, dryRun bool) (git.Git, gitproviders.GitProvider, error) {
 	isExternalConfig := app.IsExternalConfigUrl(configUrl)
 
 	var providerUrl string
@@ -121,27 +121,27 @@ func (f *defaultAppFactory) getGitClients(ctx context.Context, gpClient gitprovi
 	case isExternalConfig:
 		providerUrl = configUrl
 	default:
-		return nil, nil, nil, nil
+		return nil, nil, nil
 	}
 
 	normalizedUrl, err := gitproviders.NewNormalizedRepoURL(providerUrl)
 	if err != nil {
-		return nil, nil, nil, fmt.Errorf("error normalizing url: %w", err)
+		return nil, nil, fmt.Errorf("error normalizing url: %w", err)
 	}
 
 	kube, _, err := kube.NewKubeHTTPClient()
 	if err != nil {
-		return nil, nil, nil, fmt.Errorf("error creating k8s http client: %w", err)
+		return nil, nil, fmt.Errorf("error creating k8s http client: %w", err)
 	}
 
 	targetName, err := kube.GetClusterName(ctx)
 	if err != nil {
-		return nil, nil, nil, fmt.Errorf("error getting target name: %w", err)
+		return nil, nil, fmt.Errorf("error getting target name: %w", err)
 	}
 
 	authsvc, err := f.getAuthService(normalizedUrl, gpClient, dryRun)
 	if err != nil {
-		return nil, nil, nil, fmt.Errorf("error creating auth service: %w", err)
+		return nil, nil, fmt.Errorf("error creating auth service: %w", err)
 	}
 
 	var appClient, configClient git.Git
@@ -150,7 +150,7 @@ func (f *defaultAppFactory) getGitClients(ctx context.Context, gpClient gitprovi
 		// We need to do this even if we have an external config to set up the deploy key for the app repo
 		appRepoClient, appRepoErr := authsvc.CreateGitClient(ctx, normalizedUrl, targetName, namespace)
 		if appRepoErr != nil {
-			return nil, nil, nil, appRepoErr
+			return nil, nil, appRepoErr
 		}
 
 		appClient = appRepoClient
@@ -159,12 +159,12 @@ func (f *defaultAppFactory) getGitClients(ctx context.Context, gpClient gitprovi
 	if isExternalConfig {
 		normalizedConfigUrl, err := gitproviders.NewNormalizedRepoURL(configUrl)
 		if err != nil {
-			return nil, nil, nil, fmt.Errorf("error normalizing url: %w", err)
+			return nil, nil, fmt.Errorf("error normalizing url: %w", err)
 		}
 
 		configRepoClient, configRepoErr := authsvc.CreateGitClient(ctx, normalizedConfigUrl, targetName, namespace)
 		if configRepoErr != nil {
-			return nil, nil, nil, configRepoErr
+			return nil, nil, configRepoErr
 		}
 
 		configClient = configRepoClient
@@ -172,7 +172,7 @@ func (f *defaultAppFactory) getGitClients(ctx context.Context, gpClient gitprovi
 		configClient = appClient
 	}
 
-	return appClient, configClient, authsvc.GetGitProvider(), nil
+	return configClient, authsvc.GetGitProvider(), nil
 }
 
 func (f *defaultAppFactory) getAuthService(normalizedUrl gitproviders.NormalizedRepoURL, gpClient gitproviders.Client, dryRun bool) (auth.AuthService, error) {
