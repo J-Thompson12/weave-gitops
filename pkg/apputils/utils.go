@@ -3,7 +3,6 @@ package apputils
 import (
 	"context"
 	"fmt"
-
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/git"
@@ -23,15 +22,8 @@ import (
 // AppFactory provides helpers for generating various WeGO service objects at runtime.
 type AppFactory interface {
 	GetKubeService() (kube.Kube, error)
-	GetAppService(ctx context.Context, name, namespace string) (app.AppService, error)
-	GetAppServiceForAdd(ctx context.Context, params AppServiceParams) (app.AppService, error)
-}
-
-type DefaultAppFactory struct {
-}
-
-func (f *DefaultAppFactory) GetAppService(ctx context.Context, name, namespace string) (app.AppService, error) {
-	return GetAppService(ctx, name, namespace)
+	GetAppService(ctx context.Context, providerClient gitproviders.Client, name, namespace string) (app.AppService, error)
+	GetAppServiceForAdd(ctx context.Context, providerClient gitproviders.Client, params AppServiceParams) (app.AppService, error)
 }
 
 type AppServiceParams struct {
@@ -40,14 +32,51 @@ type AppServiceParams struct {
 	Namespace        string
 	IsHelmRepository bool
 	DryRun           bool
-	Token            string
 }
 
-func (f *DefaultAppFactory) GetAppServiceForAdd(ctx context.Context, params AppServiceParams) (app.AppService, error) {
-	return GetAppServiceForAdd(ctx, params.URL, params.ConfigURL, params.Namespace, params.IsHelmRepository, params.DryRun)
+type defaultAppFactory struct {
+	fluxClient flux.Flux
+	log        logger.Logger
+	osClient   osys.Osys
 }
 
-func (f *DefaultAppFactory) GetKubeService() (kube.Kube, error) {
+func NewAppFactory(osClient osys.Osys, cliRunner *runner.CLIRunner, log logger.Logger) AppFactory {
+	return &defaultAppFactory{
+		fluxClient: flux.New(osClient, cliRunner),
+		log:        log,
+		osClient:   osClient,
+	}
+}
+
+func (f *defaultAppFactory) GetAppService(ctx context.Context, providerClient gitproviders.Client, appName, namespace string) (app.AppService, error) {
+	kubeClient, err := f.GetKubeService()
+	if err != nil {
+		return nil, fmt.Errorf("error initializing clients: %w", err)
+	}
+
+	appClient, configClient, gitProvider, err := f.getGitClientsForApp(ctx, providerClient, appName, namespace, false)
+	if err != nil {
+		return nil, fmt.Errorf("error getting git clients: %w", err)
+	}
+
+	return app.New(ctx, f.log, appClient, configClient, gitProvider, f.fluxClient, kubeClient, f.osClient), nil
+}
+
+func (f *defaultAppFactory) GetAppServiceForAdd(ctx context.Context, providerClient gitproviders.Client, params AppServiceParams) (app.AppService, error) {
+	kubeClient, err := f.GetKubeService()
+	if err != nil {
+		return nil, fmt.Errorf("error initializing clients: %w", err)
+	}
+
+	appClient, configClient, gitProvider, err := f.getGitClients(ctx, providerClient, params.URL, params.ConfigURL, params.Namespace, params.IsHelmRepository, params.DryRun)
+	if err != nil {
+		return nil, fmt.Errorf("error getting git clients: %w", err)
+	}
+
+	return app.New(ctx, f.log, appClient, configClient, gitProvider, f.fluxClient, kubeClient, f.osClient), nil
+}
+
+func (f *defaultAppFactory) GetKubeService() (kube.Kube, error) {
 	kubeClient, _, err := kube.NewKubeHTTPClient()
 	if err != nil {
 		return nil, fmt.Errorf("error creating k8s http client: %w", err)
@@ -56,66 +85,16 @@ func (f *DefaultAppFactory) GetKubeService() (kube.Kube, error) {
 	return kubeClient, nil
 }
 
-func GetLogger() logger.Logger {
-	osysClient := osys.New()
-	return logger.NewCLILogger(osysClient.Stdout())
-}
-
-func GetBaseClients() (osys.Osys, flux.Flux, kube.Kube, logger.Logger, error) {
-	osysClient := osys.New()
-	cliRunner := &runner.CLIRunner{}
-	fluxClient := flux.New(osysClient, cliRunner)
-
-	kubeClient, _, err := kube.NewKubeHTTPClient()
-	if err != nil {
-		return nil, nil, nil, nil, fmt.Errorf("error creating k8s http client: %w", err)
-	}
-
-	logger := logger.NewCLILogger(osysClient.Stdout())
-
-	return osysClient, fluxClient, kubeClient, logger, nil
-}
-
-func IsClusterReady() error {
-	logger := GetLogger()
-
+func IsClusterReady(log logger.Logger) error {
 	kube, _, err := kube.NewKubeHTTPClient()
 	if err != nil {
 		return fmt.Errorf("error creating k8s http client: %w", err)
 	}
 
-	return app.IsClusterReady(logger, kube)
+	return app.IsClusterReady(log, kube)
 }
 
-func GetAppService(ctx context.Context, appName string, namespace string) (app.AppService, error) {
-	osysClient, fluxClient, kubeClient, logger, err := GetBaseClients()
-	if err != nil {
-		return nil, fmt.Errorf("error initializing clients: %w", err)
-	}
-
-	appClient, configClient, gitProvider, err := getGitClientsForApp(ctx, appName, namespace, false)
-	if err != nil {
-		return nil, fmt.Errorf("error getting git clients: %w", err)
-	}
-
-	return app.New(ctx, logger, appClient, configClient, gitProvider, fluxClient, kubeClient, osysClient), nil
-}
-
-func GetAppServiceForAdd(ctx context.Context, url, configUrl, namespace string, isHelmRepository bool, dryRun bool) (app.AppService, error) {
-	osysClient, fluxClient, kubeClient, logger, err := GetBaseClients()
-	if err != nil {
-		return nil, fmt.Errorf("error initializing clients: %w", err)
-	}
-
-	appClient, configClient, gitProvider, err := getGitClients(ctx, url, configUrl, namespace, isHelmRepository, dryRun)
-	if err != nil {
-		return nil, fmt.Errorf("error getting git clients: %w", err)
-	}
-
-	return app.New(ctx, logger, appClient, configClient, gitProvider, fluxClient, kubeClient, osysClient), nil
-}
-
-func getGitClientsForApp(ctx context.Context, appName string, namespace string, dryRun bool) (git.Git, git.Git, gitproviders.GitProvider, error) {
+func (f *defaultAppFactory) getGitClientsForApp(ctx context.Context, gpClient gitproviders.Client, appName string, namespace string, dryRun bool) (git.Git, git.Git, gitproviders.GitProvider, error) {
 	kube, _, err := kube.NewKubeHTTPClient()
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("error creating k8s http client: %w", err)
@@ -128,10 +107,10 @@ func getGitClientsForApp(ctx context.Context, appName string, namespace string, 
 
 	isHelmRepository := app.Spec.SourceType == wego.SourceTypeHelm
 
-	return getGitClients(ctx, app.Spec.URL, app.Spec.ConfigURL, namespace, isHelmRepository, dryRun)
+	return f.getGitClients(ctx, gpClient, app.Spec.URL, app.Spec.ConfigURL, namespace, isHelmRepository, dryRun)
 }
 
-func getGitClients(ctx context.Context, url, configUrl, namespace string, isHelmRepository bool, dryRun bool) (git.Git, git.Git, gitproviders.GitProvider, error) {
+func (f *defaultAppFactory) getGitClients(ctx context.Context, gpClient gitproviders.Client, url, configUrl, namespace string, isHelmRepository bool, dryRun bool) (git.Git, git.Git, gitproviders.GitProvider, error) {
 	isExternalConfig := app.IsExternalConfigUrl(configUrl)
 
 	var providerUrl string
@@ -160,7 +139,7 @@ func getGitClients(ctx context.Context, url, configUrl, namespace string, isHelm
 		return nil, nil, nil, fmt.Errorf("error getting target name: %w", err)
 	}
 
-	authsvc, err := getAuthService(ctx, normalizedUrl, dryRun)
+	authsvc, err := f.getAuthService(normalizedUrl, gpClient, dryRun)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("error creating auth service: %w", err)
 	}
@@ -196,28 +175,18 @@ func getGitClients(ctx context.Context, url, configUrl, namespace string, isHelm
 	return appClient, configClient, authsvc.GetGitProvider(), nil
 }
 
-func getAuthService(ctx context.Context, normalizedUrl gitproviders.NormalizedRepoURL, dryRun bool) (auth.AuthService, error) {
+func (f *defaultAppFactory) getAuthService(normalizedUrl gitproviders.NormalizedRepoURL, gpClient gitproviders.Client, dryRun bool) (auth.AuthService, error) {
 	var (
 		gitProvider gitproviders.GitProvider
 		err         error
 	)
-
-	osysClient := osys.New()
-	cliRunner := &runner.CLIRunner{}
-	fluxClient := flux.New(osysClient, cliRunner)
-	logger := logger.NewCLILogger(osysClient.Stdout())
-
-	authHandler, err := auth.NewAuthCLIHandler(normalizedUrl.Provider())
-	if err != nil {
-		return nil, fmt.Errorf("error initializing cli auth handler: %w", err)
-	}
 
 	if dryRun {
 		if gitProvider, err = gitproviders.NewDryRun(); err != nil {
 			return nil, fmt.Errorf("error creating git provider client: %w", err)
 		}
 	} else {
-		if gitProvider, err = auth.InitGitProvider(normalizedUrl, osysClient, logger, authHandler, gitproviders.GetAccountType); err != nil {
+		if gitProvider, err = gpClient.GetProvider(normalizedUrl, gitproviders.GetAccountType); err != nil {
 			return nil, fmt.Errorf("error obtaining git provider token: %w", err)
 		}
 	}
@@ -227,5 +196,5 @@ func getAuthService(ctx context.Context, normalizedUrl gitproviders.NormalizedRe
 		return nil, fmt.Errorf("error creating k8s http client: %w", err)
 	}
 
-	return auth.NewAuthService(fluxClient, rawClient, gitProvider, logger)
+	return auth.NewAuthService(f.fluxClient, rawClient, gitProvider, f.log)
 }

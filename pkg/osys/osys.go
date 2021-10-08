@@ -10,9 +10,7 @@ import (
 //counterfeiter:generate . Osys
 type Osys interface {
 	UserHomeDir() (string, error)
-	GetGitProviderToken(tokenVarName string) (string, error)
 	Getenv(envVar string) string
-	LookupEnv(envVar string) (string, bool)
 	Setenv(envVar, value string) error
 	Unsetenv(envVar string) error
 	Exit(code int)
@@ -37,10 +35,6 @@ func (o *OsysClient) Getenv(envVar string) string {
 	return os.Getenv(envVar)
 }
 
-func (o *OsysClient) LookupEnv(envVar string) (string, bool) {
-	return os.LookupEnv(envVar)
-}
-
 func (o *OsysClient) Setenv(envVar, value string) error {
 	return os.Setenv(envVar, value)
 }
@@ -55,16 +49,6 @@ func (o *OsysClient) Unsetenv(envVar string) error {
 // be mocked (e.g. we might want to mock the private key password handing).
 
 var ErrNoGitProviderTokenSet = errors.New("no git provider token env variable set")
-
-func (o *OsysClient) GetGitProviderToken(tokenVarName string) (string, error) {
-	providerToken, found := o.LookupEnv(tokenVarName)
-
-	if !found || providerToken == "" {
-		return "", ErrNoGitProviderTokenSet
-	}
-
-	return providerToken, nil
-}
 
 func (o *OsysClient) Exit(code int) {
 	os.Exit(code)

@@ -3,6 +3,8 @@ package app
 import (
 	"context"
 	"fmt"
+	"github.com/weaveworks/weave-gitops/cmd/internal"
+	"os"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/pkg/errors"
@@ -70,7 +72,10 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	command := args[1]
 	object := args[2]
 
-	appService, appError := apputils.GetAppService(ctx, params.Name, params.Namespace)
+	log := logger.NewCLILogger(os.Stdout)
+	appFactory := apputils.NewAppFactory(log)
+	client := internal.NewGitProviderClient(os.Stdout, os.LookupEnv, log)
+	appService, appError := appFactory.GetAppService(ctx, client, params.Name, params.Namespace)
 	if appError != nil {
 		return fmt.Errorf("failed to create app service: %w", appError)
 	}
@@ -85,8 +90,6 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("invalid command %s", command)
 	}
 
-	logger := apputils.GetLogger()
-
 	switch object {
 	case "commits":
 		commits, err := appService.GetCommits(params, appContent)
@@ -94,7 +97,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 			return errors.Wrapf(err, "failed to get commits for app %s", params.Name)
 		}
 
-		printCommitTable(logger, commits)
+		printCommitTable(log, commits)
 	default:
 		_ = cmd.Help()
 		return fmt.Errorf("unkown resource type \"%s\"", object)

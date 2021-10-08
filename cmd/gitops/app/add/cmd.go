@@ -5,6 +5,11 @@ package add
 import (
 	"context"
 	"fmt"
+	"github.com/weaveworks/weave-gitops/cmd/internal"
+	"github.com/weaveworks/weave-gitops/pkg/logger"
+	"github.com/weaveworks/weave-gitops/pkg/osys"
+	"github.com/weaveworks/weave-gitops/pkg/runner"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -97,13 +102,20 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return urlErr
 	}
 
-	if readyErr := apputils.IsClusterReady(); readyErr != nil {
+	log := logger.NewCLILogger(os.Stdout)
+	if readyErr := apputils.IsClusterReady(log); readyErr != nil {
 		return readyErr
 	}
 
-	isHelmRepository := params.Chart != ""
-
-	appService, appError := apputils.GetAppServiceForAdd(ctx, params.Url, params.AppConfigUrl, params.Namespace, isHelmRepository, params.DryRun)
+	providerClient := internal.NewGitProviderClient(os.Stdout, os.LookupEnv, log)
+	factory := apputils.NewAppFactory(osys.New(), &runner.CLIRunner{}, log)
+	appService, appError := factory.GetAppServiceForAdd(ctx, providerClient, apputils.AppServiceParams{
+		URL:              params.Url,
+		ConfigURL:        params.AppConfigUrl,
+		Namespace:        params.Namespace,
+		IsHelmRepository: params.IsHelmRepository(),
+		DryRun:           params.DryRun,
+	})
 	if appError != nil {
 		return fmt.Errorf("failed to create app service: %w", appError)
 	}

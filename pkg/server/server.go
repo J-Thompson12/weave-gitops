@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/weaveworks/weave-gitops/pkg/server/internal"
 	"log"
 	"net/http"
 	"strings"
@@ -49,7 +50,7 @@ var ErrEmptyAccessToken = fmt.Errorf("access token is empty")
 type applicationServer struct {
 	pb.UnimplementedApplicationsServer
 
-	appFactory   apputils.ServerAppFactory
+	appFactory   apputils.AppFactory
 	jwtClient    auth.JWTClient
 	log          logr.Logger
 	kube         client.Client
@@ -60,7 +61,7 @@ type applicationServer struct {
 // Use the DefaultConfig() to use the default dependencies.
 type ApplicationsConfig struct {
 	Logger           logr.Logger
-	AppFactory       apputils.ServerAppFactory
+	AppFactory       apputils.AppFactory
 	JwtClient        auth.JWTClient
 	KubeClient       client.Client
 	GithubAuthClient auth.GithubAuthClient
@@ -97,7 +98,7 @@ func DefaultConfig() (*ApplicationsConfig, error) {
 
 	return &ApplicationsConfig{
 		Logger:           logr,
-		AppFactory:       apputils.NewServerAppFactory(rawClient, logger.NewApiLogger()),
+		AppFactory:       apputils.NewAppFactory(logger.NewApiLogger()),
 		JwtClient:        jwtClient,
 		KubeClient:       rawClient,
 		GithubAuthClient: auth.NewGithubAuthProvider(http.DefaultClient),
@@ -313,11 +314,11 @@ func (s *applicationServer) AddApplication(ctx context.Context, msg *pb.AddAppli
 		}
 	}
 
-	appSrv, err := s.appFactory.GetAppService(ctx, apputils.AppServiceParams{
+	client := internal.NewGitProviderClient(token.AccessToken)
+	appSrv, err := s.appFactory.GetAppServiceForAdd(ctx, client, apputils.AppServiceParams{
 		URL:       msg.Url,
 		ConfigURL: msg.ConfigUrl,
 		Namespace: msg.Namespace,
-		Token:     token.AccessToken,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("could not create app service: %w", err)
@@ -372,11 +373,11 @@ func (s *applicationServer) ListCommits(ctx context.Context, msg *pb.ListCommits
 		return nil, fmt.Errorf("could not get app %q in namespace %q: %w", msg.Name, msg.Namespace, err)
 	}
 
-	appService, appErr := s.appFactory.GetAppService(ctx, apputils.AppServiceParams{
+	client := internal.NewGitProviderClient(providerToken.AccessToken)
+	appService, appErr := s.appFactory.GetAppService(ctx, client, apputils.AppServiceParams{
 		URL:       application.Spec.URL,
 		ConfigURL: application.Spec.ConfigURL,
 		Namespace: msg.Namespace,
-		Token:     providerToken.AccessToken,
 	})
 	if appErr != nil {
 		return nil, grpcStatus.Errorf(codes.Unauthenticated, "failed to create app service: %s", appErr.Error())

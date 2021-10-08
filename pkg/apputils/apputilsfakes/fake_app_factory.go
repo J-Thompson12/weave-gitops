@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/weaveworks/weave-gitops/pkg/apputils"
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 )
@@ -26,11 +27,12 @@ type FakeAppFactory struct {
 		result1 app.AppService
 		result2 error
 	}
-	GetAppServiceForAddStub        func(context.Context, apputils.AppServiceParams) (app.AppService, error)
+	GetAppServiceForAddStub        func(context.Context, gitproviders.Client, apputils.AppServiceParams) (app.AppService, error)
 	getAppServiceForAddMutex       sync.RWMutex
 	getAppServiceForAddArgsForCall []struct {
 		arg1 context.Context
-		arg2 apputils.AppServiceParams
+		arg2 gitproviders.Client
+		arg3 apputils.AppServiceParams
 	}
 	getAppServiceForAddReturns struct {
 		result1 app.AppService
@@ -122,19 +124,20 @@ func (fake *FakeAppFactory) GetAppServiceReturnsOnCall(i int, result1 app.AppSer
 	}{result1, result2}
 }
 
-func (fake *FakeAppFactory) GetAppServiceForAdd(arg1 context.Context, arg2 apputils.AppServiceParams) (app.AppService, error) {
+func (fake *FakeAppFactory) GetAppServiceForAdd(arg1 context.Context, arg2 gitproviders.Client, arg3 apputils.AppServiceParams) (app.AppService, error) {
 	fake.getAppServiceForAddMutex.Lock()
 	ret, specificReturn := fake.getAppServiceForAddReturnsOnCall[len(fake.getAppServiceForAddArgsForCall)]
 	fake.getAppServiceForAddArgsForCall = append(fake.getAppServiceForAddArgsForCall, struct {
 		arg1 context.Context
-		arg2 apputils.AppServiceParams
-	}{arg1, arg2})
+		arg2 gitproviders.Client
+		arg3 apputils.AppServiceParams
+	}{arg1, arg2, arg3})
 	stub := fake.GetAppServiceForAddStub
 	fakeReturns := fake.getAppServiceForAddReturns
-	fake.recordInvocation("GetAppServiceForAdd", []interface{}{arg1, arg2})
+	fake.recordInvocation("GetAppServiceForAdd", []interface{}{arg1, arg2, arg3})
 	fake.getAppServiceForAddMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2)
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -148,17 +151,17 @@ func (fake *FakeAppFactory) GetAppServiceForAddCallCount() int {
 	return len(fake.getAppServiceForAddArgsForCall)
 }
 
-func (fake *FakeAppFactory) GetAppServiceForAddCalls(stub func(context.Context, apputils.AppServiceParams) (app.AppService, error)) {
+func (fake *FakeAppFactory) GetAppServiceForAddCalls(stub func(context.Context, gitproviders.Client, apputils.AppServiceParams) (app.AppService, error)) {
 	fake.getAppServiceForAddMutex.Lock()
 	defer fake.getAppServiceForAddMutex.Unlock()
 	fake.GetAppServiceForAddStub = stub
 }
 
-func (fake *FakeAppFactory) GetAppServiceForAddArgsForCall(i int) (context.Context, apputils.AppServiceParams) {
+func (fake *FakeAppFactory) GetAppServiceForAddArgsForCall(i int) (context.Context, gitproviders.Client, apputils.AppServiceParams) {
 	fake.getAppServiceForAddMutex.RLock()
 	defer fake.getAppServiceForAddMutex.RUnlock()
 	argsForCall := fake.getAppServiceForAddArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
 func (fake *FakeAppFactory) GetAppServiceForAddReturns(result1 app.AppService, result2 error) {
