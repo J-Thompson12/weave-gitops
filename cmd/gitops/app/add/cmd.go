@@ -107,20 +107,26 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return readyErr
 	}
 
-	providerClient := internal.NewGitProviderClient(os.Stdout, os.LookupEnv, log)
 	factory := apputils.NewAppFactory(osys.New(), &runner.CLIRunner{}, log)
-	appService, appError := factory.GetAppServiceForAdd(ctx, providerClient, apputils.AppServiceParams{
+
+	providerClient := internal.NewGitProviderClient(os.Stdout, os.LookupEnv, log)
+	appService, appError := factory.GetAppService(ctx)
+	if appError != nil {
+		return fmt.Errorf("failed to create app service: %w", appError)
+	}
+
+	gitClient, gitProvider, gitErr := factory.GetGitClients(ctx, providerClient, apputils.AppServiceParams{
 		URL:              params.Url,
 		ConfigURL:        params.AppConfigUrl,
 		Namespace:        params.Namespace,
 		IsHelmRepository: params.IsHelmRepository(),
 		DryRun:           params.DryRun,
 	})
-	if appError != nil {
-		return fmt.Errorf("failed to create app service: %w", appError)
+	if gitErr != nil {
+		return fmt.Errorf("failed to get git clients: %w", gitErr)
 	}
 
-	if err := appService.Add(params); err != nil {
+	if err := appService.Add(gitClient, gitProvider, params); err != nil {
 		return errors.Wrapf(err, "failed to add the app %s", params.Name)
 	}
 

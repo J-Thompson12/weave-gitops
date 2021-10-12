@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/weaveworks/weave-gitops/pkg/osys"
+	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/server/internal"
 	"log"
 	"net/http"
@@ -98,7 +100,7 @@ func DefaultConfig() (*ApplicationsConfig, error) {
 
 	return &ApplicationsConfig{
 		Logger:           logr,
-		AppFactory:       apputils.NewAppFactory(logger.NewApiLogger()),
+		AppFactory:       apputils.NewAppFactory(osys.New(), &runner.CLIRunner{}, logger.NewApiLogger()),
 		JwtClient:        jwtClient,
 		KubeClient:       rawClient,
 		GithubAuthClient: auth.NewGithubAuthProvider(http.DefaultClient),
@@ -314,12 +316,7 @@ func (s *applicationServer) AddApplication(ctx context.Context, msg *pb.AddAppli
 		}
 	}
 
-	client := internal.NewGitProviderClient(token.AccessToken)
-	appSrv, err := s.appFactory.GetAppServiceForAdd(ctx, client, apputils.AppServiceParams{
-		URL:       msg.Url,
-		ConfigURL: msg.ConfigUrl,
-		Namespace: msg.Namespace,
-	})
+	appSrv, err := s.appFactory.GetAppService(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("could not create app service: %w", err)
 	}
@@ -335,7 +332,17 @@ func (s *applicationServer) AddApplication(ctx context.Context, msg *pb.AddAppli
 		AppConfigUrl:     msg.ConfigUrl,
 	}
 
-	if err := appSrv.Add(params); err != nil {
+	client := internal.NewGitProviderClient(token.AccessToken)
+	gitClient, gitProvider, err := s.appFactory.GetGitClients(ctx, client, apputils.AppServiceParams{
+		URL:       msg.Url,
+		ConfigURL: msg.ConfigUrl,
+		Namespace: msg.Namespace,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to get git clients: %w", err)
+	}
+
+	if err := appSrv.Add(gitClient, gitProvider, params); err != nil {
 		return nil, fmt.Errorf("error adding app: %w", err)
 	}
 
@@ -348,7 +355,6 @@ func (s *applicationServer) AddApplication(ctx context.Context, msg *pb.AddAppli
 	}, nil
 }
 
-//Until the middleware is done this function will not be able to get the token and will fail
 func (s *applicationServer) ListCommits(ctx context.Context, msg *pb.ListCommitsRequest) (*pb.ListCommitsResponse, error) {
 	providerToken, err := middleware.ExtractProviderToken(ctx)
 	if err != nil {
@@ -373,17 +379,22 @@ func (s *applicationServer) ListCommits(ctx context.Context, msg *pb.ListCommits
 		return nil, fmt.Errorf("could not get app %q in namespace %q: %w", msg.Name, msg.Namespace, err)
 	}
 
-	client := internal.NewGitProviderClient(providerToken.AccessToken)
-	appService, appErr := s.appFactory.GetAppService(ctx, client, apputils.AppServiceParams{
-		URL:       application.Spec.URL,
-		ConfigURL: application.Spec.ConfigURL,
-		Namespace: msg.Namespace,
-	})
+	appService, appErr := s.appFactory.GetAppService(ctx)
 	if appErr != nil {
 		return nil, grpcStatus.Errorf(codes.Unauthenticated, "failed to create app service: %s", appErr.Error())
 	}
 
-	commits, err := appService.GetCommits(params, application)
+	client := internal.NewGitProviderClient(providerToken.AccessToken)
+	_, gitProvider, err := s.appFactory.GetGitClients(ctx, client, apputils.AppServiceParams{
+		URL:       application.Spec.URL,
+		ConfigURL: application.Spec.ConfigURL,
+		Namespace: msg.Namespace,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to get git clients: %w", err)
+	}
+
+	commits, err := appService.GetCommits(gitProvider, params, application)
 	if err != nil {
 		return nil, err
 	}

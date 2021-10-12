@@ -3,6 +3,10 @@ package pause
 import (
 	"context"
 	"fmt"
+	"github.com/weaveworks/weave-gitops/pkg/logger"
+	"github.com/weaveworks/weave-gitops/pkg/osys"
+	"github.com/weaveworks/weave-gitops/pkg/runner"
+	"os"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -32,7 +36,8 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	params.Namespace, _ = cmd.Parent().Flags().GetString("namespace")
 	params.Name = args[0]
 
-	appService, appError := apputils.GetAppService(ctx, params.Name, params.Namespace)
+	appFactory := apputils.NewAppFactory(osys.New(), &runner.CLIRunner{}, logger.NewCLILogger(os.Stdout))
+	appService, appError := appFactory.GetAppService(ctx)
 	if appError != nil {
 		return fmt.Errorf("failed to create app service: %w", appError)
 	}

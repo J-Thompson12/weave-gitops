@@ -32,13 +32,13 @@ import (
 // AppService entity that manages applications
 type AppService interface {
 	// Add adds a new application to the cluster
-	Add(params AddParams) error
+	Add(configGit git.Git, gitProvider gitproviders.GitProvider, params AddParams) error
 	// Get returns a given applicaiton
 	Get(name types.NamespacedName) (*wego.Application, error)
 	// GetCommits returns a list of commits for an application
-	GetCommits(params CommitParams, application *wego.Application) ([]gitprovider.Commit, error)
+	GetCommits(gitProvider gitproviders.GitProvider, params CommitParams, application *wego.Application) ([]gitprovider.Commit, error)
 	// Remove removes an application from the cluster
-	Remove(params RemoveParams) error
+	Remove(configGit git.Git, gitProvider gitproviders.GitProvider, params RemoveParams) error
 	// Status returns flux resources status and the last successful reconciliation time
 	Status(params StatusParams) (string, string, error)
 	// Pause pauses the gitops automation for an app
@@ -48,24 +48,20 @@ type AppService interface {
 }
 
 type App struct {
-	Context     context.Context
-	Osys        osys.Osys
-	ConfigGit   git.Git
-	Flux        flux.Flux
-	Kube        kube.Kube
-	Logger      logger.Logger
-	GitProvider gitproviders.GitProvider
+	Context context.Context
+	Osys    osys.Osys
+	Flux    flux.Flux
+	Kube    kube.Kube
+	Logger  logger.Logger
 }
 
-func New(ctx context.Context, logger logger.Logger, configGit git.Git, gitProvider gitproviders.GitProvider, flux flux.Flux, kube kube.Kube, osys osys.Osys) AppService {
+func New(ctx context.Context, logger logger.Logger, flux flux.Flux, kube kube.Kube, osys osys.Osys) AppService {
 	return &App{
-		Context:     ctx,
-		ConfigGit:   configGit,
-		Flux:        flux,
-		Kube:        kube,
-		Logger:      logger,
-		Osys:        osys,
-		GitProvider: gitProvider,
+		Context: ctx,
+		Flux:    flux,
+		Kube:    kube,
+		Logger:  logger,
+		Osys:    osys,
 	}
 }
 

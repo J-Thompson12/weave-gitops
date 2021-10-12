@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/weaveworks/weave-gitops/cmd/internal"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"os"
@@ -76,8 +77,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	log := logger.NewCLILogger(os.Stdout)
 	appFactory := apputils.NewAppFactory(osys.New(), &runner.CLIRunner{}, log)
-	client := internal.NewGitProviderClient(os.Stdout, os.LookupEnv, log)
-	appService, appError := appFactory.GetAppService(ctx, client, params.Name, params.Namespace)
+	appService, appError := appFactory.GetAppService(ctx)
 	if appError != nil {
 		return fmt.Errorf("failed to create app service: %w", appError)
 	}
@@ -92,9 +92,20 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("invalid command %s", command)
 	}
 
+	kubeClient, _, kubeErr := kube.NewKubeHTTPClient()
+	if kubeErr != nil {
+		return fmt.Errorf("failed to create kube client: %w", kubeClient)
+	}
+
+	providerClient := internal.NewGitProviderClient(os.Stdout, os.LookupEnv, log)
+	_, gitProvider, gitErr := appFactory.GetGitClients(ctx, providerClient, apputils.NewAppServiceParams(appContent, false))
+	if gitErr != nil {
+		return fmt.Errorf("failed to get git clients: %w", gitErr)
+	}
+
 	switch object {
 	case "commits":
-		commits, err := appService.GetCommits(params, appContent)
+		commits, err := appService.GetCommits(gitProvider, params, appContent)
 		if err != nil {
 			return errors.Wrapf(err, "failed to get commits for app %s", params.Name)
 		}
