@@ -6,7 +6,7 @@ import (
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
-	kustomizev2 "github.com/fluxcd/kustomize-controller/api/v1beta1"
+	kustomizev2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/git"
