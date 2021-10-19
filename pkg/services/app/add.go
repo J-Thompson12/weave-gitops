@@ -654,7 +654,6 @@ func (a *App) applyToCluster(info *AppResourceInfo, dryRun bool, manifests ...[]
 	}
 
 	for _, manifest := range manifests {
-		fmt.Printf("APPLYING: %s\n", manifest)
 		if err := a.Kube.Apply(context.Background(), manifest, info.Namespace); err != nil {
 			return fmt.Errorf("could not apply manifest: %w", err)
 		}
