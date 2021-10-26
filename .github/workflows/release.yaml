@@ -63,7 +63,7 @@ jobs:
         with:
           node-version: "14.17.0"
           registry-url: "https://npm.pkg.github.com"
-          scope: "@weaveworks"
+          scope: "@J-Thompson12"
       - run: npm install
       - run: make ui-lib && cd dist && npm publish
         env:
