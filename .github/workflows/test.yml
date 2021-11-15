@@ -1,0 +1,24 @@
+on:
+  push:
+    paths-ignore:
+      - 'doc/**'
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+name: run tests
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Brew Install
+      run: |
+        brew tap j-thompson12/tap
+        brew install j-thompson12/tap/gitops
+
+
+
+
+
+
