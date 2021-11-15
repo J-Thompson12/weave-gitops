@@ -76,7 +76,7 @@ brews:
       token: "{{ .Env.BOT_TOKEN }}"
     commit_author:
       name: justin
-      email: ustin@weave.works
+      email: jpthomp12@gmail.com
     folder: Formula
     homepage: "https://docs.gitops.weave.works/docs/getting-started"
     description: "GitOps support for Kubernetes"
