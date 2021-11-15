@@ -69,7 +69,7 @@ builds:
       - arm64
 
 brews:
-  - name: gitops-test
+  - name: gitops
     tap:
       owner: J-Thompson12
       name: homebrew-tap
@@ -82,10 +82,10 @@ brews:
     homepage: "https://docs.gitops.weave.works/docs/getting-started"
     description: "GitOps support for Kubernetes"
     install: |
-      bin.install "gitops-test"
-      bash_output = Utils.safe_popen_read(bin/"gitops-test", "completion", "bash")
-      (bash_completion/"gitops-test").write bash_output
-      zsh_output = Utils.safe_popen_read(bin/"gitops-test", "completion", "zsh")
-      (zsh_completion/"gitops-test").write zsh_output
+      bin.install "gitops"
+      bash_output = Utils.safe_popen_read(bin/"gitops", "completion", "bash")
+      (bash_completion/"gitops").write bash_output
+      zsh_output = Utils.safe_popen_read(bin/"gitops", "completion", "zsh")
+      (zsh_completion/"gitops").write zsh_output
     test: |
-      system "#{bin}/gitops-test --version"
+      system "#{bin}/gitops --version"
