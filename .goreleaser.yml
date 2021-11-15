@@ -83,9 +83,11 @@ brews:
     description: "GitOps support for Kubernetes"
     install: |
       bin.install "gitops"
-      output = Utils.popen_read("#{bin}/gitops completion bash")
-      (bash_completion/"gitops").write output
-      output = Utils.popen_read("#{bin}/eksctl completion zsh")
-      (zsh_completion/"_gitops").write output
+      chmod +x gitops
+      sudo mv ./gitops /usr/local/bin/gitops
+      bash_output = Utils.safe_popen_read(bin/"gitops", "completion", "bash")
+      (bash_completion/"gitops").write bash_output
+      zsh_output = Utils.safe_popen_read(bin/"gitops", "completion", "zsh")
+      (zsh_completion/"_gitops").write zsh_output
     test: |
-      system "#{bin}/gitops --version"
+      system "#{bin}/gitops version"
