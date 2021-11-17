@@ -68,6 +68,14 @@ builds:
     goarch:
       - arm64
 
+archives:
+  - name_template: "{{ .Binary }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    id: nix
+    builds: [linux, darwin]
+    format: tar.gz
+    files:
+      - none*
+
 brews:
   - tap:
       owner: J-Thompson12
