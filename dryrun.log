@@ -5,6 +5,6 @@ touch .deps
 npm ci
 npx npm-force-resolutions
 npm run build
-go build -ldflags "-X github.com/weaveworks/weave-gitops/cmd/gitops/version.BuildTime=2021-11-17_09:28:03 -X github.com/weaveworks/weave-gitops/cmd/gitops/version.Branch=main -X github.com/weaveworks/weave-gitops/cmd/gitops/version.GitCommit=a12c632 -X github.com/weaveworks/weave-gitops/pkg/version.FluxVersion=0.17.2" -o bin/gitops cmd/gitops/*.go
+go build -ldflags "-X github.com/weaveworks/weave-gitops/cmd/gitops/version.BuildTime=2021-11-17_09:54:10 -X github.com/weaveworks/weave-gitops/cmd/gitops/version.Branch=main -X github.com/weaveworks/weave-gitops/cmd/gitops/version.GitCommit=f8529d7 -X github.com/weaveworks/weave-gitops/pkg/version.FluxVersion=0.17.2" -o bin/gitops cmd/gitops/*.go
 make: Leaving directory `/Users/justinthompson/go/src/github.com/justin/weave-gitops'
  

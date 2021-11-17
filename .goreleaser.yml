@@ -69,22 +69,29 @@ builds:
       - arm64
 
 brews:
-  - name: gitops
-    tap:
-      owner: weaveworks
+  - tap:
+      owner: J-Thompson12
       name: homebrew-tap
-      token: "{{ .Env.BOT_TOKEN }}"
+
     commit_author:
       name: weaveworksbot
       email: team+gitbot@weave.works
+
     folder: Formula
+
     homepage: "https://docs.gitops.weave.works/docs/getting-started"
+
     description: "GitOps support for Kubernetes"
+
+    skip_upload: false
+
+    custom_block: |
+      head "https://github.com/J-Thompson12/weave-gitops/releases/download/latest_release/gitops-darwin-arm64"
     install: |
-      bin.install "gitops"
-      bash_output = Utils.safe_popen_read(bin/"gitops", "completion", "bash")
-      (bash_completion/"gitops").write bash_output
-      zsh_output = Utils.safe_popen_read(bin/"gitops", "completion", "zsh")
-      (zsh_completion/"_gitops").write zsh_output
-    test: |
-      system "#{bin}/gitops version"
+        bin.install "gitops"
+        # Install bash completion
+        output = Utils.popen_read("#{bin}/gitops completion bash")
+        (bash_completion/"gitops").write output
+        # Install zsh completion
+        output = Utils.popen_read("#{bin}/gitops completion zsh")
+        (zsh_completion/"_gitops").write output
