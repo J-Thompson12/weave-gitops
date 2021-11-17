@@ -70,7 +70,7 @@ builds:
 
 brews:
   - tap:
-      owner: j-thompson12
+      owner: J-Thompson12
       name: homebrew-tap
       token: "{{ .Env.BOT_TOKEN }}"
 
