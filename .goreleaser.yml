@@ -9,7 +9,7 @@ checksum:
 release:
   prerelease: auto
 archives:
-  - format: binary
+  - format: tar.gz
     replacements:
       amd64: x86_64
     name_template: "gitops-{{.Os}}-{{.Arch}}"
@@ -67,14 +67,6 @@ builds:
       - darwin
     goarch:
       - arm64
-
-archives:
-  - name_template: "{{ .Binary }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
-    id: nix
-    builds: [linux, darwin]
-    format: tar.gz
-    files:
-      - none*
 
 brews:
   - tap:
