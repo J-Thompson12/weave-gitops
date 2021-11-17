@@ -72,6 +72,7 @@ brews:
   - tap:
       owner: j-thompson12
       name: homebrew-tap
+      token: "{{ .Env.BOT_TOKEN }}"
 
     commit_author:
       name: justin
