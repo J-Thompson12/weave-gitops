@@ -45,6 +45,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: ssh-keygen
         run: |
+          mkdir -p ~/.ssh
+          touch ~/.ssh/known_hosts
           ssh-keygen -R github.com
           ssh git@github.com
       - name: Run GoReleaser
