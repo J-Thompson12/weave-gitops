@@ -69,7 +69,8 @@ builds:
       - arm64
 
 brews:
-  - tap:
+  - name:
+    tap:
       owner: J-Thompson12
       name: homebrew-tap
       token: "{{ .Env.BOT_TOKEN }}"
