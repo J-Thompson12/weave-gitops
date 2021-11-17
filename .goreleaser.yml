@@ -69,7 +69,7 @@ builds:
       - arm64
 
 brews:
-  - name:
+  - name: gitops
     tap:
       owner: J-Thompson12
       name: homebrew-tap
