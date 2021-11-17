@@ -72,6 +72,7 @@ brews:
   - tap:
       owner: J-Thompson12
       name: homebrew-tap
+      token: "{{ .Env.BOT_TOKEN }}"
 
     commit_author:
       name: justin
@@ -87,7 +88,7 @@ brews:
 
     custom_block: |
       head "https://github.com/J-Thompson12/weave-gitops/releases/download/latest_release/gitops-darwin-arm64"
-
+      
     install: |
       bin.install "gitops"
       # Install bash completion
