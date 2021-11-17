@@ -69,11 +69,10 @@ builds:
       - arm64
 
 brews:
-  - name: gitops
-    tap:
+  - tap:
       owner: J-Thompson12
       name: homebrew-tap
-      token: "{{ .Env.BOT_TOKEN }}"
+      token: "{{ .Env.GITHUB_TOKEN }}"
 
     commit_author:
       name: justin
