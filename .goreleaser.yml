@@ -8,6 +8,11 @@ checksum:
   name_template: "{{ .ProjectName }}_checksums.txt"
 release:
   prerelease: auto
+archives:
+  - format: tar.gz
+    replacements:
+      amd64: x86_64
+    name_template: "gitops-{{.Os}}-{{.Arch}}"
 builds:
   - <<: &build_defaults
       binary: "gitops"
@@ -27,29 +32,41 @@ builds:
           - mkdir -p ./pkg/flux/bin
           - mv ./flux ./pkg/flux/bin/flux
           - rm flux-tar.gz
-    id: linux
+    id: linux-amd64
     goos:
       - linux
     goarch:
       - amd64
+    goarm:
+      - 7
+  - <<: *build_defaults
+    id: linux-arm64
+    goos:
+      - linux
+    goarch:
       - arm64
+    goarm:
+      - 7
+  - <<: *build_defaults
+    id: linux-arm
+    goos:
+      - linux
+    goarch:
       - arm
     goarm:
       - 7
   - <<: *build_defaults
-    id: darwin
+    id: darwin-amd64
     goos:
       - darwin
     goarch:
       - amd64
+  - <<: *build_defaults
+    id: darwin-arm64
+    goos:
+      - darwin
+    goarch:
       - arm64
-archives:
-  - name_template: "{{ .Binary }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
-    id: nix
-    builds: [linux, darwin]
-    format: tar.gz
-    files:
-      - none*
 
 brews:
   - tap:
@@ -65,7 +82,7 @@ brews:
     skip_upload: false
 
     custom_block: |
-      head "https://github.com/weaveworks/weave-gitops/releases/download/latest_release/gitops_Darwin_amd64.tar.gz"
+      head "https://github.com/weaveworks/weave-gitops/releases/download/latest_release/gitops-Darwin-amd64.tar.gz"
     install: |
         bin.install "gitops"
 
