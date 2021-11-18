@@ -9,7 +9,7 @@ checksum:
 release:
   prerelease: auto
 archives:
-  - format: binary
+  - format: tar.gz
     replacements:
       amd64: x86_64
     name_template: "gitops-{{.Os}}-{{.Arch}}"
@@ -79,10 +79,7 @@ brews:
     folder: Formula
     homepage: "https://docs.gitops.weave.works/docs/getting-started"
     description: "GitOps support for Kubernetes"
-    skip_upload: false
 
-    custom_block: |
-      head "https://github.com/weaveworks/weave-gitops/releases/download/latest_release/gitops-Darwin-amd64.tar.gz"
     install: |
         bin.install "gitops"
 
