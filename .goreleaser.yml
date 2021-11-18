@@ -8,11 +8,6 @@ checksum:
   name_template: "{{ .ProjectName }}_checksums.txt"
 release:
   prerelease: auto
-archives:
-  - format: tar.gz
-    replacements:
-      amd64: x86_64
-    name_template: "gitops-{{.Os}}-{{.Arch}}"
 builds:
   - <<: &build_defaults
       binary: "gitops-{{.Os}}-{{.Arch}}"
@@ -32,7 +27,7 @@ builds:
           - mkdir -p ./pkg/flux/bin
           - mv ./flux ./pkg/flux/bin/flux
           - rm flux-tar.gz
-    id: linux-amd64
+    id: linux_amd64
     goos:
       - linux
     goarch:
@@ -40,7 +35,7 @@ builds:
     goarm:
       - 7
   - <<: *build_defaults
-    id: linux-arm64
+    id: linux_arm64
     goos:
       - linux
     goarch:
@@ -48,7 +43,7 @@ builds:
     goarm:
       - 7
   - <<: *build_defaults
-    id: linux-arm
+    id: linux_arm
     goos:
       - linux
     goarch:
@@ -56,17 +51,25 @@ builds:
     goarm:
       - 7
   - <<: *build_defaults
-    id: darwin-amd64
+    id: darwin_amd64
     goos:
       - darwin
     goarch:
       - amd64
   - <<: *build_defaults
-    id: darwin-arm64
+    id: darwin_arm64
     goos:
       - darwin
     goarch:
       - arm64
+
+archives:
+  - name_template: "{{ .Binary }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    id: nix
+    builds: [linux, darwin]
+    format: tar.gz
+    files:
+      - none*
 
 brews:
   - tap:
