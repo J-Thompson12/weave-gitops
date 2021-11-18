@@ -10,7 +10,7 @@ release:
   prerelease: auto
 builds:
   - <<: &build_defaults
-      binary: "gitops-{{.Os}}-{{.Arch}}"
+      binary: "gitops"
       main: ./cmd/gitops
       ldflags:
         - -X github.com/weaveworks/weave-gitops/cmd/gitops/version.Version={{.Version}}
