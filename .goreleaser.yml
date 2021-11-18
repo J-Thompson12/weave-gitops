@@ -80,13 +80,15 @@ brews:
     folder: Formula
     homepage: "https://docs.gitops.weave.works/docs/getting-started"
     description: "GitOps support for Kubernetes"
+    skip_upload: false
+
+    custom_block: |
+      head "https://github.com/weaveworks/weave-gitops/releases/download/latest_release/gitops_Darwin_amd64.tar.gz"
     install: |
-      bin.install "gitops"
-      # Install bash completion
-      output = Utils.popen_read("#{bin}/gitops completion bash")
-      (bash_completion/"gitops").write output
-      # Install zsh completion
-      output = Utils.popen_read("#{bin}/gitops completion zsh")
-      (zsh_completion/"_gitops").write output
-    test: |
-      system "#{bin}/gitops version"
+        bin.install "gitops"
+
+        bash_output = Utils.safe_popen_read(bin/"gitops", "completion", "bash")
+        (bash_completion/"gitops").write bash_output
+
+        zsh_output = Utils.safe_popen_read(bin/"gitops", "completion", "zsh")
+        (zsh_completion/"_gitops").write zsh_output
