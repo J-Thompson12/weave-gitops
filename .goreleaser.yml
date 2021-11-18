@@ -9,7 +9,7 @@ checksum:
 release:
   prerelease: auto
 archives:
-  - format: tar.gz
+  - format: binary
     replacements:
       amd64: x86_64
     name_template: "gitops-{{.Os}}-{{.Arch}}"
