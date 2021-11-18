@@ -27,7 +27,7 @@ builds:
           - mkdir -p ./pkg/flux/bin
           - mv ./flux ./pkg/flux/bin/flux
           - rm flux-tar.gz
-    id: linux_amd64
+    id: linux-amd64
     goos:
       - linux
     goarch:
@@ -35,7 +35,7 @@ builds:
     goarm:
       - 7
   - <<: *build_defaults
-    id: linux_arm64
+    id: linux-arm64
     goos:
       - linux
     goarch:
@@ -43,7 +43,7 @@ builds:
     goarm:
       - 7
   - <<: *build_defaults
-    id: linux_arm
+    id: linux-arm
     goos:
       - linux
     goarch:
@@ -51,13 +51,13 @@ builds:
     goarm:
       - 7
   - <<: *build_defaults
-    id: darwin_amd64
+    id: darwin-amd64
     goos:
       - darwin
     goarch:
       - amd64
   - <<: *build_defaults
-    id: darwin_arm64
+    id: darwin-arm64
     goos:
       - darwin
     goarch:
