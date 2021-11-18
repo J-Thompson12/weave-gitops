@@ -43,14 +43,6 @@ jobs:
           ignorePreReleases: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: ssh-keygen
-        shell: bash
-        run: |
-          mkdir -p ~/.ssh
-          touch ~/.ssh/known_hosts
-          ssh-keygen -R github.com
-          cat > ~/.ssh/known_hosts <<- EOM
-          ssh git@github.com
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v1
         with:

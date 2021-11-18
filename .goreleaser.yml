@@ -69,26 +69,17 @@ builds:
       - arm64
 
 brews:
-  - tap:
+  - name: gitops
+    tap:
       owner: J-Thompson12
       name: homebrew-tap
       token: "{{ .Env.BOT_TOKEN }}"
-
     commit_author:
-      name: justin
-      email: jpthomp12@gmail.com
-
+      name: weaveworksbot
+      email: team+gitbot@weave.works
     folder: Formula
-
     homepage: "https://docs.gitops.weave.works/docs/getting-started"
-
     description: "GitOps support for Kubernetes"
-
-    skip_upload: false
-
-    custom_block: |
-      head "https://github.com/J-Thompson12/weave-gitops/releases/download/latest_release/gitops-darwin-arm64"
-      
     install: |
       bin.install "gitops"
       # Install bash completion
