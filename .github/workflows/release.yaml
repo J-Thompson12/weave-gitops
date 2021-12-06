@@ -64,7 +64,7 @@ jobs:
         uses: goreleaser/goreleaser-action@v1
         with:
           version: latest
-          args: release --rm-dist --config= ./.goreleaser.brew.yml
+          args: release --rm-dist --timeout 60m --config=./.goreleaser.brew.yml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           BRANCH: ${{ env.BRANCH }}
