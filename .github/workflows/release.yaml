@@ -62,11 +62,9 @@ jobs:
         uses: goreleaser/goreleaser-action@v1
         with:
           version: latest
-          config: ./.goreleaser.brew.yml
-          args: release --rm-dist
+          args: release --rm-dist --config= ./.goreleaser.brew.yml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          BOT_TOKEN: ${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}
           BRANCH: ${{ env.BRANCH }}
           FLUX_VERSION: ${{ env.FLUX_VERSION }}
           GORELEASER_PREVIOUS_TAG: ${{ env.GORELEASER_PREVIOUS_TAG }}
