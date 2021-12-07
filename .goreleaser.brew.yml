@@ -3,7 +3,7 @@ brews:
   - tap:
       owner: J-Thompson12
       name: homebrew-tap
-      token: "{{ .Env.BOT_TOKEN }}"
+      token: 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
     commit_author:
       name: weaveworksbot
       email: team+gitbot@weave.works
