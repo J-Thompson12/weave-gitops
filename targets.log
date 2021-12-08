@@ -8,7 +8,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # This program built for i386-apple-darwin11.3.0
  
 
-# Make data base, printed on Wed Nov 17 14:11:42 2021
+# Make data base, printed on Wed Dec  8 10:08:34 2021
 
 # Variables
 
@@ -17,7 +17,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # automatic
 ?F = $(notdir $?)
 # environment
-GITPROVIDER_BOT_TOKEN = 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
+GITPROVIDER_BOT_TOKEN = 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
 # makefile (from `Makefile', line 24)
 BINARY_NAME := gitops
 # environment
@@ -41,9 +41,11 @@ GIT_PROVIDER_USER = J-Thompson12
 # makefile (from `Makefile', line 8)
 GIT_COMMIT = $(shell git log -n1 --pretty='%h')
 # environment
-GITHUB_TOKEN = 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
+GITHUB_TOKEN = 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
 # makefile (from `Makefile', line 1)
 MAKEFILE_LIST :=  Makefile
+# environment
+VSCODE_AMD_ENTRYPOINT = vs/workbench/services/extensions/node/extensionHostProcess
 # environment
 GITLAB_USER_NAME = J-Thompson12
 # makefile (from `Makefile', line 2)
@@ -53,9 +55,11 @@ VSCODE_VERBOSE_LOGGING = true
 # environment
 __CFBundleIdentifier = com.microsoft.VSCode
 # environment
-VSCODE_IPC_HOOK_EXTHOST = /var/folders/_6/9x4mj9lx1sj53thq6g0c93vw0000gn/T/vscode-ipc-9a624551-4580-470e-aeaa-5ec7b77cdde4.sock
+VSCODE_IPC_HOOK_EXTHOST = /var/folders/_6/9x4mj9lx1sj53thq6g0c93vw0000gn/T/vscode-ipc-26e6ab49-7f68-4f13-8f8a-aa91b4a7839f.sock
 # environment
 VSCODE_CWD = /
+# environment
+GOPROXY = https://proxy.golang.org,direct
 # environment
 PATH = /usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/go/bin:/bin:/Users/justinthompson/go/bin
 # environment
@@ -89,7 +93,7 @@ PWD = /Users/justinthompson/go/src/github.com/justin/weave-gitops
 # environment
 ORIGINAL_XDG_CURRENT_DESKTOP = undefined
 # environment
-VSCODE_AMD_ENTRYPOINT = vs/workbench/services/extensions/node/extensionHostProcess
+GOMODCACHE = /Users/justinthompson/go/pkg/mod
 # environment
 HOME = /Users/justinthompson
 # environment
@@ -97,7 +101,7 @@ GIT_PROVIDER_ORGANIZATION = gogittest
 # default
 MAKEFILEPATH = $(shell /usr/bin/xcode-select -print-path 2>/dev/null || echo /Developer)/Makefiles
 # environment
-VSCODE_CODE_CACHE_PATH = /Users/justinthompson/Library/Application Support/Code/CachedData/f4af3cbf5a99787542e2a30fe1fd37cd644cc31f
+VSCODE_CODE_CACHE_PATH = /Users/justinthompson/Library/Application Support/Code/CachedData/3a6960b964327f0e3882ce18fcebd07ed191b316
 # environment
 LOGNAME = justinthompson
 # environment
@@ -137,7 +141,7 @@ TMPDIR = /var/folders/_6/9x4mj9lx1sj53thq6g0c93vw0000gn/T/
 # makefile (from `Makefile', line 3)
 GOOS = $(shell go env GOOS)
 # environment
-VSCODE_IPC_HOOK = /Users/justinthompson/Library/Application Support/Code/1.62.1-main.sock
+VSCODE_IPC_HOOK = /Users/justinthompson/Library/Application Support/Code/1.62.2-main.sock
 # makefile (from `Makefile', line 6)
 BUILD_TIME = $(shell date +'%Y-%m-%d_%T')
 # makefile
@@ -147,7 +151,7 @@ MFLAGS = -Rrqp
 # automatic
 *D = $(patsubst %/,%,$(dir $*))
 # environment
-XPC_SERVICE_NAME = application.com.microsoft.VSCode.19187145.19187151
+XPC_SERVICE_NAME = application.com.microsoft.VSCode.19808150.19808156
 # makefile (from `Makefile', line 11)
 FLUX_VERSION = $(shell $(CURRENT_DIR)/tools/bin/stoml $(CURRENT_DIR)/tools/dependencies.toml flux.version)
 # automatic
@@ -185,15 +189,15 @@ KUBEBUILDER_ASSETS = "$(CURRENT_DIR)/tools/bin/envtest"
 # default
 .INCLUDE_DIRS = /usr/local/include
 # environment
-GITLAB_TOKE = EiCt9t-xYnELTV993bqz
-# environment
 MAKELEVEL := 0
+# environment
+GITLAB_TOKEN = EiCt9t-xYnELTV993bqz
 # environment
 LANG = C
 # environment
-VSCODE_PID = 83838
+VSCODE_PID = 85169
 # variable set hash-table stats:
-# Load=90/1024=9%, Rehash=0, Collisions=2/122=2%
+# Load=92/1024=9%, Rehash=0, Collisions=3/124=2%
 
 # Pattern-specific Variable Values
 
@@ -289,12 +293,12 @@ gitops: dependencies ui bin
 #  File has been updated.
 #  Needs to be updated (-q is set).
 # variable set hash-table stats:
+ 
 # Load=0/32=0%, Rehash=0, Collisions=0/2=0%
 
 # Not a target:
 .SUFFIXES:
 #  Implicit rule search has not been done.
- 
 #  Modification time never checked.
 #  File has not been updated.
 
@@ -552,7 +556,6 @@ check-format:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
- 
 #  commands to execute (from `Makefile', line 90):
 	if [ ! -z "$(FORMAT_LIST)" ] ; then echo invalid format at: ${FORMAT_LIST} && exit 1; fi
 	
@@ -578,6 +581,7 @@ cmd/gitops/ui/run/dist:
 install: bin
 #  Phony target (prerequisite of .PHONY).
 #  Implicit rule search has not been done.
+ 
 #  File does not exist.
 #  File has not been updated.
 #  commands to execute (from `Makefile', line 43):
@@ -586,7 +590,7 @@ install: bin
 
 node_modules:
 #  Implicit rule search has not been done.
-#  Last modified 2021-10-26 14:05:58
+#  Last modified 2021-12-07 13:51:36
 #  File has been updated.
 #  Successfully updated.
 #  commands to execute (from `Makefile', line 103):
@@ -617,6 +621,6 @@ coverage.out: dependencies
 # strcache size: total = 4096 / max = 4096 / min = 4096 / avg = 4096
 # strcache free: total = 4087 / max = 4087 / min = 4087 / avg = 4087
 
-# Finished Make data base on Wed Nov 17 14:11:42 2021
+# Finished Make data base on Wed Dec  8 10:08:34 2021
 
  
